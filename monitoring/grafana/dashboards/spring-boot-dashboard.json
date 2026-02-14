@@ -1,0 +1,308 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "description": "Spring Boot application metrics from Micrometer/Prometheus",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "links": [],
+    "panels": [
+        {
+            "title": "HTTP Request Rate",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "rate(http_server_requests_seconds_count{application=\"chakro-server\"}[5m])",
+                    "legendFormat": "{{method}} {{uri}} [{{status}}]",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        },
+        {
+            "title": "HTTP Response Time (p95)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"chakro-server\"}[5m])) by (le, uri))",
+                    "legendFormat": "p95 {{uri}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        },
+        {
+            "title": "JVM Heap Memory",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "expr": "jvm_memory_used_bytes{application=\"chakro-server\", area=\"heap\"}",
+                    "legendFormat": "{{id}} used",
+                    "refId": "A"
+                },
+                {
+                    "expr": "jvm_memory_max_bytes{application=\"chakro-server\", area=\"heap\"}",
+                    "legendFormat": "{{id}} max",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "bytes",
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        },
+        {
+            "title": "JVM CPU Usage",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 12,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "expr": "process_cpu_usage{application=\"chakro-server\"}",
+                    "legendFormat": "Process CPU",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "max": 1,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.6
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.85
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "title": "System CPU Usage",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "expr": "system_cpu_usage{application=\"chakro-server\"}",
+                    "legendFormat": "System CPU",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "max": 1,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.6
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.85
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "title": "Active Threads",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "expr": "jvm_threads_live_threads{application=\"chakro-server\"}",
+                    "legendFormat": "Live Threads",
+                    "refId": "A"
+                },
+                {
+                    "expr": "jvm_threads_daemon_threads{application=\"chakro-server\"}",
+                    "legendFormat": "Daemon Threads",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        },
+        {
+            "title": "DB Connection Pool",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "expr": "hikaricp_connections_active{application=\"chakro-server\"}",
+                    "legendFormat": "Active",
+                    "refId": "A"
+                },
+                {
+                    "expr": "hikaricp_connections_idle{application=\"chakro-server\"}",
+                    "legendFormat": "Idle",
+                    "refId": "B"
+                },
+                {
+                    "expr": "hikaricp_connections_pending{application=\"chakro-server\"}",
+                    "legendFormat": "Pending",
+                    "refId": "C"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        },
+        {
+            "title": "Redis Operations",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 24
+            },
+            "targets": [
+                {
+                    "expr": "rate(spring_data_repository_invocations_seconds_count{application=\"chakro-server\"}[5m])",
+                    "legendFormat": "{{method}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ops",
+                    "custom": {
+                        "drawStyle": "bars",
+                        "fillOpacity": 50
+                    }
+                }
+            }
+        },
+        {
+            "title": "JVM GC Pause Time",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 24
+            },
+            "targets": [
+                {
+                    "expr": "rate(jvm_gc_pause_seconds_sum{application=\"chakro-server\"}[5m])",
+                    "legendFormat": "{{cause}} - {{action}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "custom": {
+                        "drawStyle": "line",
+                        "fillOpacity": 10
+                    }
+                }
+            }
+        }
+    ],
+    "schemaVersion": 39,
+    "tags": [
+        "spring-boot",
+        "chakro",
+        "jvm"
+    ],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Chakro — Spring Boot Dashboard",
+    "uid": "chakro-spring-boot",
+    "version": 1
+}

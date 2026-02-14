@@ -1,0 +1,38 @@
+# Build artifacts
+target/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Maven wrapper JAR (downloaded at build)
+.mvn/wrapper/maven-wrapper.jar
+
+# Documentation
+*.md
+docs/
+
+# Environment & secrets
+.env*
+*.pem
+*.key
+*.p12
+*.jks
+
+# Docker files (prevent recursive context)
+Dockerfile
+.dockerignore
+docker-compose*
+compose.yaml
+
+# Logs
+*.log
+logs/

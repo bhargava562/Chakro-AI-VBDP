@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: server
+
+# ---- Actuator & Monitoring ----
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: chakro-server

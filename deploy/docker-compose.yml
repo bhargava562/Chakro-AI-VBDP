@@ -1,0 +1,151 @@
+# ==============================================
+# Chakro — Production Docker Compose
+# ==============================================
+
+services:
+
+  # ---------- Application ----------
+
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: chakro-server
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-chakro}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-chakro}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_AI_VECTORSTORE_PGVECTOR_DATABASE=${POSTGRES_DB:-chakro}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chakro-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  client:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    container_name: chakro-client
+    restart: unless-stopped
+    ports:
+      - "${CLIENT_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - chakro-net
+
+  # ---------- Data Stores ----------
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: chakro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chakro}
+      POSTGRES_USER: ${POSTGRES_USER:-chakro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - chakro-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chakro} -d ${POSTGRES_DB:-chakro}" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: chakro-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - chakro-net
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # ---------- Monitoring ----------
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chakro-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - chakro-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chakro-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - chakro-net
+
+# ---------- Networks ----------
+
+networks:
+  chakro-net:
+    driver: bridge
+
+# ---------- Volumes ----------
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

@@ -1,0 +1,37 @@
+# Dependencies (reinstalled in container)
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+coverage/
+
+# Version control
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Documentation
+*.md
+
+# Environment & secrets
+.env*
+*.pem
+*.key
+
+# Docker files (prevent recursive context)
+Dockerfile
+.dockerignore
+nginx.conf
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.bak
+*.tmp
