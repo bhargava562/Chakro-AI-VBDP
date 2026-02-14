@@ -1,0 +1,27 @@
+# =============================================
+# Production Profile Overrides
+# Activated with: SPRING_PROFILES_ACTIVE=prod
+# =============================================
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 60000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+  flyway:
+    baseline-on-migrate: false
+    clean-disabled: true
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    com.chakro: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
