@@ -1,0 +1,21 @@
+﻿
+D:\Chakro-AI-VBDP\client\src\app\components\WorkspaceDetail.tsx
+  210:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Chakro-AI-VBDP\client\src\app\components\ui\badge.tsx
+  46:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Chakro-AI-VBDP\client\src\app\components\ui\button.tsx
+  58:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Chakro-AI-VBDP\client\src\app\components\ui\form.tsx
+  160:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Chakro-AI-VBDP\client\src\app\components\ui\navigation-menu.tsx
+  167:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Chakro-AI-VBDP\client\src\app\components\ui\toggle.tsx
+  47:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+Γ£û 6 problems (6 errors, 0 warnings)
+
