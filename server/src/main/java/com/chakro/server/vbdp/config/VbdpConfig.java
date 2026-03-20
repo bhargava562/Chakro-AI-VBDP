@@ -15,7 +15,6 @@ import java.util.concurrent.Executors;
 @EnableConfigurationProperties({GroqProperties.class, VbdpProperties.class})
 public class VbdpConfig {
 
-
     @Bean
     public MessageWindowChatMemory vbdpChatMemory(GroqProperties groqProperties) {
         return new MessageWindowChatMemory(groqProperties.getChatMemory().getMaxMessages());
