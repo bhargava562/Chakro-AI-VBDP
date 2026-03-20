@@ -1,12 +1,17 @@
 spring:
   application:
-    name: server
+    name: chakro-vbdp-server
 
-  # ---- Datasource (PostgreSQL + pgvector) ----
+  # ---- Virtual Threads (Java 21) ----
+  threads:
+    virtual:
+      enabled: true
+
+  # ---- Datasource (PostgreSQL) ----
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:chakro}
-    username: ${POSTGRES_USER:chakro}
-    password: ${POSTGRES_PASSWORD:changeme}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -32,11 +37,20 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # ---- Redis ----
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+  # ---- Servlet (file upload limits) ----
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# ---- Server ----
+server:
+  port: ${SERVER_PORT:8080}
+
+# ---- VBDP Configuration ----
+vbdp:
+  file-storage-path: ${VBDP_FILE_STORAGE:./generated-proposals}
+  download-token-expiry-hours: 24
 
 # ---- Actuator & Monitoring ----
 management:
@@ -53,5 +67,11 @@ management:
         enabled: true
   metrics:
     tags:
-      application: chakro-server
+      application: chakro-vbdp-server
 
+# ---- Logging ----
+logging:
+  level:
+    root: INFO
+    com.chakro: DEBUG
+    dev.langchain4j: DEBUG

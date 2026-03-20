@@ -41,8 +41,11 @@ nbproject/
 .env.production
 .env.staging
 .env.*.local
+env/.env.development
 env/.env.production
 env/.env.staging
+env/*.env
+env/*.env.development
 *.pem
 *.key
 *.p12
