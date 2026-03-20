@@ -1,0 +1,27 @@
+package com.chakro.server.vbdp.config;
+
+import com.chakro.server.vbdp.memory.MessageWindowChatMemory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Application configuration for the Virtual Business Development Partner (VBDP) backend.
+ */
+@Configuration
+@EnableConfigurationProperties({GroqProperties.class, VbdpProperties.class})
+public class VbdpConfig {
+
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService virtualThreadExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean
+    public MessageWindowChatMemory chatMemory(GroqProperties groqProperties) {
+        return new MessageWindowChatMemory(groqProperties.getChatMemory().getMaxMessages());
+    }
+}
