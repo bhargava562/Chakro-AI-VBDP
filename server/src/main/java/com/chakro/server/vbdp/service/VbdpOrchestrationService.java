@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
  * The CEO Agent of the Virtual Business Development Partner (VBDP).
  * Orchestrates the full lifecycle of an opportunity:
  * Discovery -> Security Validate -> Analysis -> Proposal Response.
- * Utilizes Java 21+ Virtual Threads to manage high concurrency without blocking platform threads.
+ * Utilizes Java 25+ Virtual Threads to manage high concurrency without blocking platform threads.
  */
 @Service
 public class VbdpOrchestrationService {
@@ -66,8 +66,6 @@ public class VbdpOrchestrationService {
         log.info("Discovery complete. Found {} candidates.", report.getOpportunities().size());
 
         // We use Java Virtual Threads to optimize I/O bounds for all subsequent phases per opportunity.
-        // Note: Using the provided 'executor' bean if configured for virtual threads, 
-        // or explicitly using virtual threads here as requested.
         try (var virtualExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
             
             List<CompletableFuture<Void>> futures = report.getOpportunities().stream()
@@ -82,14 +80,14 @@ public class VbdpOrchestrationService {
     }
 
     /**
-     * Runs a discovery operation. (Compatible with existing VbdpController)
+     * Runs a discovery operation in a virtual thread to avoid blocking OS threads.
      */
     public DiscoveryReport runDiscovery(String query) {
         return CompletableFuture.supplyAsync(() -> discoveryAgent.discover(query), executor).join();
     }
 
     /**
-     * Runs an additional security review. (Compatible with existing VbdpController)
+     * Runs an additional security review over an existing set of opportunities.
      */
     public List<HackathonOpportunity> runSecurityReview(List<HackathonOpportunity> opportunities) {
         return CompletableFuture.supplyAsync(() -> securityAgent.validateOpportunities(opportunities), executor).join();
