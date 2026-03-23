@@ -2,7 +2,7 @@
 
 ## System Overview
 
-Chakro AI is a monorepo with a Spring Boot backend and React frontend, backed by PostgreSQL (with pgvector for AI embeddings), Redis for caching, and a full observability stack.
+Chakro AI is a monorepo with a Spring Boot backend and React frontend, backed by Supabase (PostgreSQL), and a full observability stack.
 
 ```mermaid
 graph TB
@@ -16,7 +16,7 @@ graph TB
         WS["/ws → WebSocket"]
     end
 
-    subgraph Server["Spring Boot 4.0"]
+    subgraph Server["Spring Boot 3.5.2"]
         Controllers["REST Controllers"]
         AI["Spring AI"]
         Services["Business Logic"]
@@ -24,8 +24,7 @@ graph TB
     end
 
     subgraph DataStores
-        PG["PostgreSQL 16 + pgvector"]
-        Redis["Redis"]
+        DB[(Supabase PostgreSQL)]
     end
 
     subgraph Monitoring
@@ -35,8 +34,7 @@ graph TB
 
     React --> Nginx
     Nginx --> Server
-    Server --> PG
-    Server --> Redis
+    Server --> DB
     Actuator --> Prometheus
     Prometheus --> Grafana
 ```
@@ -55,10 +53,9 @@ graph TB
 
 1. **User** → Nginx (port 80) → serves React SPA
 2. **React** → Nginx `/api/*` → reverse proxy → **Spring Boot** (port 8080)
-3. **Spring Boot** → PostgreSQL (data + pgvector embeddings)
-4. **Spring Boot** → Redis (caching, sessions)
-5. **Spring Boot Actuator** → Prometheus → Grafana (metrics)
-6. **WebSocket** → Nginx `/ws` → Spring Boot (STOMP via SockJS)
+3. **Spring Boot** → Supabase (Data + Persistence)
+4. **Spring Boot Actuator** → Prometheus → Grafana (metrics)
+5. **WebSocket** → Nginx `/ws` → Spring Boot (STOMP via SockJS)
 
 ## Tech Stack Details
 

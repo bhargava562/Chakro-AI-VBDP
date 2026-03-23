@@ -4,7 +4,7 @@
 
 Chakro uses **Prometheus** for metrics collection and **Grafana** for visualization, with **Micrometer** instrumentation inside the Spring Boot application.
 
-```
+```text
 Spring Boot (Actuator) → /actuator/prometheus → Prometheus (scrape) → Grafana (visualize)
 ```
 
@@ -12,8 +12,8 @@ Spring Boot (Actuator) → /actuator/prometheus → Prometheus (scrape) → Graf
 
 | Service    | URL                   | Default Credentials |
 |------------|-----------------------|---------------------|
-| Grafana    | http://localhost:3001 | admin / admin       |
-| Prometheus | http://localhost:9090 | —                   |
+| Grafana    | [http://localhost:3001](http://localhost:3001) | admin / admin       |
+| Prometheus | [http://localhost:9090](http://localhost:9090) | —                   |
 
 ## Pre-Built Dashboard
 
@@ -27,8 +27,7 @@ The **Chakro — Spring Boot Dashboard** is auto-provisioned and includes:
 | JVM CPU Usage          | Process CPU utilization gauge                     |
 | System CPU Usage       | System-wide CPU utilization gauge                 |
 | Active Threads         | Live and daemon thread counts                     |
-| DB Connection Pool     | HikariCP active, idle, pending connections        |
-| Redis Operations       | Repository invocation rates                       |
+| DB Connection Pool     | HikariCP active, idle, pending (Supabase)         |
 | JVM GC Pause Time      | Garbage collection pause durations                |
 
 ## Adding Custom Metrics

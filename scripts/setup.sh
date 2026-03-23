@@ -5,9 +5,9 @@
 # Usage: ./scripts/setup.sh
 #
 # This script:
-#   1. Copies env template if .env.production doesn't exist
+#   1. Copies env template if .env doesn't exist
 #   2. Installs client dependencies
-#   3. Starts all Docker services (DB included)
+#   3. Starts application and monitoring services
 
 set -euo pipefail
 
@@ -22,10 +22,10 @@ echo "============================================="
 echo ""
 
 # ---- Step 1: Environment file ----
-if [ ! -f "env/.env.production" ]; then
-    echo "📋 Creating env/.env.production from template..."
-    cp env/.env.production.example env/.env.production
-    echo "   ⚠️  Edit env/.env.production with your actual secrets before production use!"
+if [ ! -f ".env" ]; then
+    echo "📋 Creating .env from template..."
+    cp .env.example .env
+    echo "   ⚠️  Edit .env with your actual secrets before use!"
     echo ""
 fi
 
@@ -57,7 +57,7 @@ fi
 # ---- Step 4: Start all services ----
 echo "🚀 Starting all services (this may take a few minutes on first run)..."
 echo ""
-docker compose -f deploy/docker-compose.yml --env-file env/.env.production up -d --build
+docker compose -f deploy/docker-compose.yml up -d --build
 
 echo ""
 echo "============================================="

@@ -4,9 +4,9 @@
 # Usage: .\scripts\setup.ps1
 #
 # This script:
-#   1. Copies env template if .env.production doesn't exist
+#   1. Copies env template if .env doesn't exist
 #   2. Installs client dependencies
-#   3. Starts all Docker services (DB included)
+#   3. Starts application and monitoring services
 
 $ErrorActionPreference = "Stop"
 
@@ -19,10 +19,10 @@ Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ---- Step 1: Environment file ----
-if (-not (Test-Path "env\.env.production")) {
+if (-not (Test-Path ".env")) {
     Write-Host "Copying env template..." -ForegroundColor Yellow
-    Copy-Item "env\.env.production.example" "env\.env.production"
-    Write-Host "  WARNING: Edit env\.env.production with your actual secrets before production use!" -ForegroundColor Red
+    Copy-Item ".env.example" ".env"
+    Write-Host "  WARNING: Edit .env with your actual secrets before use!" -ForegroundColor Red
     Write-Host ""
 }
 
@@ -55,7 +55,7 @@ if (Test-Path "client") {
 # ---- Step 4: Start all services ----
 Write-Host "Starting all services (this may take a few minutes on first run)..." -ForegroundColor Yellow
 Write-Host ""
-docker compose -f deploy/docker-compose.yml --env-file env/.env.production up -d --build
+docker compose -f deploy\docker-compose.yml up -d --build
 
 Write-Host ""
 Write-Host "=============================================" -ForegroundColor Green
