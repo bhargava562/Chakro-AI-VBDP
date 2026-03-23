@@ -137,18 +137,33 @@ public class AuthenticationService {
     }
 
     /**
-     * Verifies OTP and authenticates user (placeholder for OTP flow).
-     * Currently treats successful verification as login.
+     * Verifies OTP and authenticates user.
+     * Checks if OTP matches and has not expired.
      */
     @Transactional
     public AuthResponse verifyOTP(OTPRequest request) {
         log.info("OTP verification attempt for email: {}", request.email());
 
         User user = userRepository.findByEmailAndIsActiveTrue(request.email())
-                .orElseThrow(() -> new BadCredentialsException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("OTP verification failed: user not found - {}", request.email());
+                    return new BadCredentialsException("User not found");
+                });
 
-        // TODO: Implement actual OTP verification against Redis/database
-        // For now, accept any OTP format (validation already done in DTO)
+        // Actual OTP verification
+        if (user.getOtpCode() == null || !user.getOtpCode().equals(request.otp())) {
+            log.warn("OTP verification failed: invalid code for {}", request.email());
+            throw new BadCredentialsException("Invalid OTP code");
+        }
+
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(OffsetDateTime.now())) {
+            log.warn("OTP verification failed: code expired for {}", request.email());
+            throw new BadCredentialsException("OTP code has expired");
+        }
+
+        // Clear OTP after successful verification
+        user.setOtpCode(null);
+        user.setOtpExpiry(null);
 
         // Generate tokens
         String accessToken = tokenProvider.generateAccessToken(
@@ -167,6 +182,24 @@ public class AuthenticationService {
 
         log.info("OTP verification successful for email: {}", request.email());
         return buildAuthResponse(user, accessToken, refreshToken);
+    }
+
+    /**
+     * Generates and stores a new 6-digit OTP for the given user.
+     * @return The generated OTP code
+     */
+    @Transactional
+    public String generateOTP(String email) {
+        User user = userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+        user.setOtpCode(otp);
+        user.setOtpExpiry(OffsetDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        log.info("Generated new OTP for user: {}", email);
+        return otp;
     }
 
     /**

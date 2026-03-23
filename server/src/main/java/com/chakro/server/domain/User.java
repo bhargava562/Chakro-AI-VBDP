@@ -66,6 +66,12 @@ public class User implements UserDetails {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "otp_code", length = 6)
+    private String otpCode;
+
+    @Column(name = "otp_expiry")
+    private OffsetDateTime otpExpiry;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
