@@ -113,8 +113,10 @@ public class DashboardController {
      * For now, using principal name (email) as fallback.
      */
     private String extractUserIdFromAuth(Authentication authentication) {
-        // TODO: Extract userId from JWT token claims
-        // For now, use the principal name (email) 
+        if (authentication.getPrincipal() instanceof com.chakro.server.domain.User user) {
+            return user.getId().toString();
+        }
+        // Fallback or throw exception if principal type is unexpected
         return authentication.getName();
     }
 }
