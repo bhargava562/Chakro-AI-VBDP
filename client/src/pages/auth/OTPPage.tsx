@@ -1,10 +1,17 @@
 import { useState, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { fadeInUp, staggerContainer } from '@/motion/variants';
+import { authService } from '@/services/auth';
 
 export function OTPPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const email = (location.state as { email?: string })?.email ?? '';
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -14,24 +21,26 @@ export function OTPPage() {
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) inputRefs.current[index - 1]?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const code = otp.join('');
+    if (code.length < 6) { toast.error('Enter the full 6-digit code'); return; }
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await authService.verifyOTP({ email, otp: code });
+      navigate('/dashboard', { replace: true });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
       setIsLoading(false);
-      window.location.href = '/dashboard';
-    }, 1500);
+    }
   };
 
   return (

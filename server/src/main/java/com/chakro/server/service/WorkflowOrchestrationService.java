@@ -29,18 +29,15 @@ public class WorkflowOrchestrationService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowOrchestrationService.class);
 
     private final OpportunityRepository opportunityRepository;
-    private final ProposalDraftRepository proposalDraftRepository;
     private final AnalysisService analysisService;
     private final ProposalService proposalService;
     private final ObjectMapper objectMapper;
 
     public WorkflowOrchestrationService(OpportunityRepository opportunityRepository,
-                                         ProposalDraftRepository proposalDraftRepository,
                                          AnalysisService analysisService,
                                          ProposalService proposalService,
                                          ObjectMapper objectMapper) {
         this.opportunityRepository = opportunityRepository;
-        this.proposalDraftRepository = proposalDraftRepository;
         this.analysisService = analysisService;
         this.proposalService = proposalService;
         this.objectMapper = objectMapper;

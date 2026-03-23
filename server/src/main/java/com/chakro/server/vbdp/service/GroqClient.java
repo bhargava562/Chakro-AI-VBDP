@@ -8,9 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -82,7 +80,10 @@ public class GroqClient {
 
             return response;
         } catch (Exception e) {
-            return "";
+            org.slf4j.LoggerFactory.getLogger(GroqClient.class).error("Groq generation failed for prompt: {}. Error: {}", 
+                userPrompt.length() > 50 ? userPrompt.substring(0, 50) + "..." : userPrompt, 
+                e.getMessage(), e);
+            return "ERROR: " + e.getMessage();
         }
     }
 

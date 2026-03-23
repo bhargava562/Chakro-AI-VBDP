@@ -2,45 +2,42 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { fadeInUp, staggerContainer } from '@/motion/variants';
-import { useAuthStore } from '@/stores/authStore';
-import { useTenantStore } from '@/stores/tenantStore';
+import { authService } from '@/services/auth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const login = useAuthStore((s) => s.login);
-  const setTenant = useTenantStore((s) => s.setTenant);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const validate = () => {
+    const e: typeof errors = {};
+    if (!email) e.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Enter a valid email';
+    if (!password) e.password = 'Password is required';
+    else if (password.length < 8) e.password = 'Password must be at least 8 characters';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
-
-    setTimeout(() => {
-      login(
-        {
-          id: 'demo-user',
-          name: 'Demo User',
-          email: email || 'demo@chakro.ai',
-          role: 'owner',
-          tenantId: 'demo-tenant',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          accessToken: 'demo-access-token',
-          refreshToken: 'demo-refresh-token',
-          expiresAt: Date.now() + 1000 * 60 * 60,
-        }
-      );
-      setTenant('demo-tenant', 'Demo Organization');
-      setIsLoading(false);
+    try {
+      await authService.login({ email, password });
       navigate('/dashboard', { replace: true });
-    }, 900);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,26 +65,30 @@ export function LoginPage() {
             onSubmit={handleSubmit}
             className="space-y-5"
           >
-            <Input
-              id="email"
-              label="Email"
-              type="email"
-              placeholder="name@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              icon={<Mail className="h-4 w-4" />}
-              required
-            />
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              icon={<Lock className="h-4 w-4" />}
-              required
-            />
+            <div>
+              <Input
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: undefined })); }}
+                icon={<Mail className="h-4 w-4" />}
+              />
+              {errors.email && <p className="mt-1 text-xs text-danger-400">{errors.email}</p>}
+            </div>
+            <div>
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: undefined })); }}
+                icon={<Lock className="h-4 w-4" />}
+              />
+              {errors.password && <p className="mt-1 text-xs text-danger-400">{errors.password}</p>}
+            </div>
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">

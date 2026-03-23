@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -37,20 +36,17 @@ public class VbdpOrchestrationService {
     private final AnalysisService analysisService;
     private final ProposalService proposalService;
     private final OpportunityRepository opportunityRepository;
-    private final ExecutorService executor;
 
     public VbdpOrchestrationService(DiscoveryAgent discoveryAgent,
                                     SecurityAgent securityAgent,
                                     AnalysisService analysisService,
                                     ProposalService proposalService,
-                                    OpportunityRepository opportunityRepository,
-                                    ExecutorService executor) {
+                                    OpportunityRepository opportunityRepository) {
         this.discoveryAgent = discoveryAgent;
         this.securityAgent = securityAgent;
         this.analysisService = analysisService;
         this.proposalService = proposalService;
         this.opportunityRepository = opportunityRepository;
-        this.executor = executor;
     }
 
     /**
@@ -73,7 +69,7 @@ public class VbdpOrchestrationService {
                 .toList();
 
             // Wait for all pipelines to conclude
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
         }
 
         log.info("CEO Agent completed full pipeline for query: {}", query);
@@ -83,14 +79,18 @@ public class VbdpOrchestrationService {
      * Runs a discovery operation in a virtual thread to avoid blocking OS threads.
      */
     public DiscoveryReport runDiscovery(String query) {
-        return CompletableFuture.supplyAsync(() -> discoveryAgent.discover(query), executor).join();
+        try (var virtualExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+            return CompletableFuture.supplyAsync(() -> discoveryAgent.discover(query), virtualExecutor).join();
+        }
     }
 
     /**
      * Runs an additional security review over an existing set of opportunities.
      */
     public List<HackathonOpportunity> runSecurityReview(List<HackathonOpportunity> opportunities) {
-        return CompletableFuture.supplyAsync(() -> securityAgent.validateOpportunities(opportunities), executor).join();
+        try (var virtualExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+            return CompletableFuture.supplyAsync(() -> securityAgent.validateOpportunities(opportunities), virtualExecutor).join();
+        }
     }
 
     private void processSingleOpportunity(HackathonOpportunity opp) {
@@ -107,11 +107,29 @@ public class VbdpOrchestrationService {
         // Halt pipeline on Security Violation (Guardrail)
         if (secureOpp.getSecurityAssessment() != null &&
                 secureOpp.getSecurityAssessment().getStatus() == SecurityAssessment.Status.SECURITY_VIOLATION) {
-             throw new SecurityViolationException("SECURITY HALT: Malicious content detected at " + secureOpp.getUrl() + 
+             throw new SecurityViolationException("SECURITY HALT: Malicious content detected at " + secureOpp.getUrl() +
                      " Details: " + String.join(", ", secureOpp.getSecurityAssessment().getFindings()));
         }
 
-        // Bridge to Analysis context via DB Entity
+        // NOTE: No DB write here. Persistence only happens via commitOpportunity() when the
+        // user explicitly sends a proposal (commit-only storage rule).
+        log.info("Security phase passed for {}. Awaiting explicit user commit.", secureOpp.getUrl());
+    }
+
+    /**
+     * Commit a single opportunity to the database and trigger the full Analysis + Proposal pipeline.
+     * Called ONLY when the user explicitly initiates the "send proposal" action.
+     */
+    public void commitOpportunity(HackathonOpportunity opp) {
+        List<HackathonOpportunity> sanitizedList = securityAgent.validateOpportunities(List.of(opp));
+        if (sanitizedList.isEmpty()) return;
+        HackathonOpportunity secureOpp = sanitizedList.get(0);
+
+        if (secureOpp.getSecurityAssessment() != null &&
+                secureOpp.getSecurityAssessment().getStatus() == SecurityAssessment.Status.SECURITY_VIOLATION) {
+            throw new SecurityViolationException("SECURITY HALT: " + secureOpp.getUrl());
+        }
+
         Opportunity entity = new Opportunity();
         entity.setTitle(secureOpp.getTitle());
         entity.setSourceUrl(secureOpp.getUrl());
@@ -120,16 +138,10 @@ public class VbdpOrchestrationService {
         entity = opportunityRepository.save(entity);
 
         try {
-            // 3. Analysis Phase
-            log.info("Phase 3: Triggering Analysis for {}", entity.getId());
+            log.info("Committed opportunity {}. Running Analysis + Proposal.", entity.getId());
             analysisService.runAnalysis(entity.getId());
-
-            // 4. Response Phase (Triggers HITL)
-            log.info("Phase 4: Generating Response Draft for {}", entity.getId());
             ProposalDraft draft = proposalService.generateProposal(entity.getId());
-            
-            log.info("Draft generated seamlessly. Awaiting Human Review for: {}", draft.getId());
-
+            log.info("Draft generated for committed opportunity: {}", draft.getId());
         } catch (Exception e) {
             log.error("Pipeline failure for {}: {}", entity.getId(), e.getMessage());
             throw new RuntimeException("Pipeline failed", e);

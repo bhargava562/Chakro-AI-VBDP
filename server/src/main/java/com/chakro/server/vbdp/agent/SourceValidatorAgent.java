@@ -40,7 +40,7 @@ public class SourceValidatorAgent {
     private String extractHost(String url) {
         try {
             return new java.net.URI(url).getHost();
-        } catch (Exception e) {
+        } catch (java.net.URISyntaxException e) {
             return url;
         }
     }
