@@ -1,6 +1,5 @@
 package com.chakro.server;
 
-import com.chakro.server.domain.ProposalDraft;
 import com.chakro.server.dto.AuthResponse;
 import com.chakro.server.dto.RegisterRequest;
 import com.chakro.server.repository.OpportunityRepository;
@@ -105,7 +104,7 @@ public class SupabasePersistenceTest {
         assertThat(finalOppCount).isEqualTo(initialOppCount + 1);
         
         // Verify Proposal Draft creation (Analysis + Proposal triggered automatically in commit)
-        List<ProposalDraft> drafts = proposalRepository.findAll();
+        List<com.chakro.server.domain.ProposalDraft> drafts = proposalRepository.findAll();
         assertThat(drafts).isNotEmpty();
         log.info("Explicit commit verified: Opportunity stored and Proposal Draft generated.");
 

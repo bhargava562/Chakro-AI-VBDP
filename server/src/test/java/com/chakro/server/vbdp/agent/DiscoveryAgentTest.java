@@ -22,7 +22,7 @@ class DiscoveryAgentTest {
     private DiscoveryAgent discoveryAgent;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         searchAgent = Mockito.mock(HackathonSearchAgent.class);
         scrapingAgent = Mockito.mock(ScrapingAgent.class);
         sourceValidator = Mockito.mock(SourceValidatorAgent.class);

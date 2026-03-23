@@ -79,10 +79,13 @@ public class GroqClient {
             }
 
             return response;
-        } catch (Exception e) {
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException | com.fasterxml.jackson.core.JsonProcessingException e) {
             org.slf4j.LoggerFactory.getLogger(GroqClient.class).error("Groq generation failed for prompt: {}. Error: {}", 
                 userPrompt.length() > 50 ? userPrompt.substring(0, 50) + "..." : userPrompt, 
                 e.getMessage(), e);
+            return "ERROR: " + e.getMessage();
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(GroqClient.class).error("Unexpected error during Groq generation: {}", e.getMessage(), e);
             return "ERROR: " + e.getMessage();
         }
     }

@@ -8,7 +8,6 @@ import com.chakro.server.dto.*;
 import com.chakro.server.exception.ResourceNotFoundException;
 import com.chakro.server.exception.UnauthorizedDownloadException;
 import com.chakro.server.repository.OpportunityRepository;
-import com.chakro.server.repository.ProposalDraftRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
