@@ -1,6 +1,5 @@
 package com.chakro.server;
 
-import com.chakro.server.domain.AnalysisResult;
 import com.chakro.server.domain.Opportunity;
 import com.chakro.server.domain.OpportunityStatus;
 import com.chakro.server.domain.ProposalDraft;
@@ -23,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

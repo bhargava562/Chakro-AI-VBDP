@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,7 +22,7 @@ class DiscoveryAgentTest {
     private DiscoveryAgent discoveryAgent;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         searchAgent = Mockito.mock(HackathonSearchAgent.class);
         scrapingAgent = Mockito.mock(ScrapingAgent.class);
         sourceValidator = Mockito.mock(SourceValidatorAgent.class);
@@ -33,8 +32,7 @@ class DiscoveryAgentTest {
                 searchAgent,
                 scrapingAgent,
                 sourceValidator,
-                injectionDetector,
-                Executors.newVirtualThreadPerTaskExecutor());
+                injectionDetector);
     }
 
     @Test

@@ -4,7 +4,7 @@
 
 - Docker Engine 24+ and Docker Compose v2
 - At least 4 GB RAM available for containers
-- Ports 80, 3001, 5432, 6379, 8080, 9090 available
+- Ports 80, 3001, 8080, 9090 available
 
 ## Quick Deploy
 
@@ -12,38 +12,29 @@
 # 1. Clone the repo
 git clone https://github.com/YOUR_USERNAME/chakro.git && cd chakro
 
-# 2. Create production environment file
-cp env/.env.production.example env/.env.production
+# 2. Create environment file
+cp .env.example .env
 # Edit with strong passwords
 
 # 3. Build and start
-make up
-
-# 4. Verify
-make status
+docker compose -f deploy/docker-compose.yml up -d --build
 ```
 
 ## Services & Ports
 
 | Service    | Internal Port | Default External Port | URL                    |
 |------------|---------------|----------------------|------------------------|
-| Client     | 80            | 80                   | http://localhost       |
-| Server     | 8080          | 8080                 | http://localhost:8080  |
-| PostgreSQL | 5432          | 5432                 | —                      |
-| Redis      | 6379          | 6379                 | —                      |
-| Prometheus | 9090          | 9090                 | http://localhost:9090  |
-| Grafana    | 3000          | 3001                 | http://localhost:3001  |
+| Client     | 80            | 80                   | [http://localhost](http://localhost)       |
+| Server     | 8080          | 8080                 | [http://localhost:8080](http://localhost:8080)  |
+| Prometheus | 9090          | 9090                 | [http://localhost:9090](http://localhost:9090)  |
+| Grafana    | 3000          | 3001                 | [http://localhost:3001](http://localhost:3001)  |
 
-## Environment Configuration
-
-All environment variables are managed in the `env/` directory:
+All environment variables are managed in the root `.env` file:
 
 | File                       | Purpose                           | Commit? |
 |----------------------------|-----------------------------------|---------|
 | `.env.example`             | Full variable reference           | ✅      |
-| `.env.development`         | Dev defaults (safe values)        | ✅      |
-| `.env.production.example`  | Prod template (empty passwords)   | ✅      |
-| `.env.production`          | Actual prod secrets               | ❌      |
+| `.env`                     | Actual secrets                    | ❌      |
 
 ## Common Operations
 

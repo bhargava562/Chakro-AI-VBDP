@@ -1,0 +1,6 @@
+-- =============================================
+-- V4: User OTP Fields
+-- =============================================
+
+ALTER TABLE users ADD COLUMN otp_code VARCHAR(6);
+ALTER TABLE users ADD COLUMN otp_expiry TIMESTAMP WITH TIME ZONE;

@@ -1,7 +1,6 @@
 package com.chakro.server.vbdp.model;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 
 /**

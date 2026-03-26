@@ -1,8 +1,66 @@
 spring:
+  application:
+    name: chakro-vbdp-server
+  
   main:
-    allow-bean-definition-overriding: false
+    allow-bean-definition-overriding: true
 
+  # ---- Virtual Threads (Java 25) ----
+  threads:
+    virtual:
+      enabled: true
+
+  # ---- Datasource (Supabase PostgreSQL) ----
+  # Using environment variables for all sensitive connection details
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL:10}
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+
+  # ---- Flyway Migrations ----
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+
+  # ---- JPA / Hibernate ----
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ---- Servlet (file upload limits) ----
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# ---- Server ----
+server:
+  port: ${SERVER_PORT:8080}
+
+# ==================== JWT Configuration ====================
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}        # Default: 1 hour
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000} # Default: 7 days
+
+# ---- VBDP Configuration ----
 vbdp:
+  file-storage-path: ${VBDP_FILE_STORAGE:./generated-proposals}
+  download-token-expiry-hours: 24
   discovery:
     max-threads: 8
     request:
@@ -12,11 +70,36 @@ vbdp:
       - "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
+# ---- Groq Configuration ----
 groq:
   api:
     base-url: https://api.groq.com/v1
-    model: llama-3.3-70b-versatile
+    model: ${GROQ_MODEL_NAME:llama-3.3-70b-versatile}
     timeout: 30s
     max-tokens: 4096
   chat-memory:
     max-messages: 20
+
+# ---- Actuator & Monitoring ----
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: chakro-vbdp-server
+
+# ---- Logging ----
+logging:
+  level:
+    root: INFO
+    com.chakro: ${LOG_LEVEL_CHAKRO:DEBUG}
+    dev.langchain4j: INFO

@@ -4,7 +4,9 @@ import com.chakro.server.vbdp.annotation.Tool;
 import com.chakro.server.vbdp.model.SecurityAssessment;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -40,7 +42,7 @@ public class SecurityTools {
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
             // If we got any response, the TLS handshake succeeded.
             return response.statusCode() >= 200 && response.statusCode() < 500;
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException | URISyntaxException e) {
             return false;
         }
     }

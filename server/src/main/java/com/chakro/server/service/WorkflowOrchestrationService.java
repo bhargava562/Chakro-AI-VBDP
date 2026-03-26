@@ -8,7 +8,6 @@ import com.chakro.server.dto.*;
 import com.chakro.server.exception.ResourceNotFoundException;
 import com.chakro.server.exception.UnauthorizedDownloadException;
 import com.chakro.server.repository.OpportunityRepository;
-import com.chakro.server.repository.ProposalDraftRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -29,18 +28,15 @@ public class WorkflowOrchestrationService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowOrchestrationService.class);
 
     private final OpportunityRepository opportunityRepository;
-    private final ProposalDraftRepository proposalDraftRepository;
     private final AnalysisService analysisService;
     private final ProposalService proposalService;
     private final ObjectMapper objectMapper;
 
     public WorkflowOrchestrationService(OpportunityRepository opportunityRepository,
-                                         ProposalDraftRepository proposalDraftRepository,
                                          AnalysisService analysisService,
                                          ProposalService proposalService,
                                          ObjectMapper objectMapper) {
         this.opportunityRepository = opportunityRepository;
-        this.proposalDraftRepository = proposalDraftRepository;
         this.analysisService = analysisService;
         this.proposalService = proposalService;
         this.objectMapper = objectMapper;

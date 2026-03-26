@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Primary Discovery Agent that coordinates subagents to find and extract hackathon problem statements.
@@ -30,13 +32,12 @@ public class DiscoveryAgent {
     public DiscoveryAgent(HackathonSearchAgent searchAgent,
                           ScrapingAgent scrapingAgent,
                           SourceValidatorAgent sourceValidator,
-                          InjectionDetectorAgent injectionDetector,
-                          java.util.concurrent.ExecutorService executor) {
+                          InjectionDetectorAgent injectionDetector) {
         this.searchAgent = searchAgent;
         this.scrapingAgent = scrapingAgent;
         this.sourceValidator = sourceValidator;
         this.injectionDetector = injectionDetector;
-        this.executor = executor;
+        this.executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @SystemMessage(SYSTEM_PROMPT)
@@ -45,17 +46,17 @@ public class DiscoveryAgent {
 
         List<String> candidateUrls = searchAgent.searchHackathons(query);
 
-        List<java.util.concurrent.CompletableFuture<HackathonOpportunity>> futures = candidateUrls.stream()
-                .map(url -> java.util.concurrent.CompletableFuture.supplyAsync(() -> processUrl(url), executor))
+        List<CompletableFuture<HackathonOpportunity>> futures = candidateUrls.stream()
+                .map(url -> CompletableFuture.supplyAsync(() -> processUrl(url), executor))
                 .toList();
 
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
 
         List<HackathonOpportunity> opportunities = new ArrayList<>(futures.size());
-        for (java.util.concurrent.CompletableFuture<HackathonOpportunity> future : futures) {
+        for (CompletableFuture<HackathonOpportunity> future : futures) {
             try {
                 opportunities.add(future.get());
-            } catch (Exception e) {
+            } catch (InterruptedException | ExecutionException e) {
                 opportunities.add(new HackathonOpportunity(
                         "Unknown",
                         "",

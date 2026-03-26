@@ -14,21 +14,11 @@ services:
     restart: unless-stopped
     ports:
       - "${SERVER_PORT:-8080}:8080"
+    env_file:
+      - ../.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=${POSTGRES_DB:-chakro}
-      - POSTGRES_USER=${POSTGRES_USER:-chakro}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - SPRING_AI_VECTORSTORE_PGVECTOR_DATABASE=${POSTGRES_DB:-chakro}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - LOG_LEVEL_CHAKRO=${LOG_LEVEL_CHAKRO:-INFO}
     networks:
       - chakro-net
     healthcheck:
@@ -54,48 +44,6 @@ services:
         condition: service_healthy
     networks:
       - chakro-net
-
-  # ---------- Data Stores ----------
-
-  postgres:
-    image: pgvector/pgvector:pg16
-    container_name: chakro-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-chakro}
-      POSTGRES_USER: ${POSTGRES_USER:-chakro}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/01-init-extensions.sql:ro
-    networks:
-      - chakro-net
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chakro} -d ${POSTGRES_DB:-chakro}" ]
-      interval: 10s
-      timeout: 5s
-      start_period: 30s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: chakro-redis
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - chakro-net
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
 
   # ---------- Monitoring ----------
 
@@ -144,10 +92,6 @@ networks:
 # ---------- Volumes ----------
 
 volumes:
-  postgres-data:
-    driver: local
-  redis-data:
-    driver: local
   prometheus-data:
     driver: local
   grafana-data:

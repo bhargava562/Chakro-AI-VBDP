@@ -23,7 +23,16 @@ public class EnvConfig {
                 .filename(".env")
                 .ignoreIfMissing()
                 .load();
-        log.info("Dotenv loaded. GROQ_API_KEY present: {}", dotenv.get("GROQ_API_KEY") != null);
+        
+        // Export variables to System properties so Spring can resolve them in application.yml via ${VAR_NAME}
+        dotenv.entries().forEach(entry -> {
+            if (System.getProperty(entry.getKey()) == null) {
+                System.setProperty(entry.getKey(), entry.getValue());
+            }
+        });
+
+        log.info("Dotenv loaded and exported to System properties. GROQ_API_KEY present: {}", 
+                dotenv.get("GROQ_API_KEY") != null);
         return dotenv;
     }
 

@@ -80,19 +80,20 @@ public class ProposalService {
         opportunity.setStatus(OpportunityStatus.GENERATING_PROPOSAL);
         opportunityRepository.save(opportunity);
 
-        try {
+        try (var virtualExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
             // Step 1: Plan proposal structure
             log.info("Step 1: Planning proposal structure for opportunity {}", opportunityId);
-            String proposalStructure = structurePlannerSubAgent.planStructure(analysisData);
+            java.util.concurrent.Future<String> structureFuture = virtualExecutor.submit(() -> structurePlannerSubAgent.planStructure(analysisData));
+            String proposalStructure = structureFuture.get();
 
             // Step 2: Generate content
             log.info("Step 2: Generating proposal content for opportunity {}", opportunityId);
-            String proposalContent = contentGenerationSubAgent.generateContent(
-                    analysisData, proposalStructure);
+            java.util.concurrent.Future<String> contentFuture = virtualExecutor.submit(() -> contentGenerationSubAgent.generateContent(analysisData, proposalStructure));
+            String proposalContent = contentFuture.get();
 
             // Step 3: Generate document file
             log.info("Step 3: Generating document file for opportunity {}", opportunityId);
-            String filePath = documentGenerationTool.generateDocumentFile(proposalContent);
+            virtualExecutor.submit(() -> documentGenerationTool.generateDocumentFile(proposalContent)).get();
 
             // Determine version
             int version = proposalDraftRepository
@@ -164,7 +165,7 @@ public class ProposalService {
                     previousDraft.getContentText(), feedback);
 
             // Generate new document file
-            String filePath = documentGenerationTool.generateDocumentFile(revisedContent);
+            documentGenerationTool.generateDocumentFile(revisedContent);
 
             // Create new version
             String downloadToken = UUID.randomUUID().toString();

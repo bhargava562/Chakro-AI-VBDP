@@ -14,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,16 +35,16 @@ import static org.mockito.Mockito.*;
 })
 class EndToEndWorkflowTest {
 
-    @MockBean
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private DiscoveryAgent discoveryAgent;
 
-    @MockBean
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private SecurityAgent securityAgent;
 
-    @MockBean
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private AnalysisService analysisService;
 
-    @MockBean
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private ProposalService proposalService;
 
     @Autowired

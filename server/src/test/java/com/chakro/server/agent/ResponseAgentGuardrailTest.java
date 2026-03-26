@@ -17,7 +17,6 @@ import com.chakro.server.service.ProposalService;
 import com.chakro.server.service.WorkflowOrchestrationService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
